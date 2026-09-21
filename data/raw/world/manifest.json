@@ -1,0 +1,1 @@
+{"complete":false,"phase":"details","snapshotDate":"2026-09-12","cities":90902,"query":"SELECT DISTINCT ?city WHERE {\n hint:Query hint:optimizer \"None\".\n VALUES ?root { wd:Q515 wd:Q7930989 }\n ?class wdt:P279* ?root.\n ?city wdt:P31 ?class.\n FILTER NOT EXISTS { ?city wdt:P576 ?d. }\n}","idsHash":"f8e08b5efe66f10368557fa12f2d20b9b2829c4e1b8881c25f9a621e2220ac25"}

@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.env*
+dist/
+data/raw/world/entities/
+data/raw/world/*error*
+data/raw/world/*rate-limit*
+data/raw/world/*.lock
+data/raw/world/eurasia/status.json
+data/raw/world/eurasia/*.log
+data/raw/world/eurasia/batch-*

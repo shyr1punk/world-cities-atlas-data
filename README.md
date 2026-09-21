@@ -1,42 +1,44 @@
 # World Cities Atlas Data
 
-Выгрузка городов Wikidata для исторического атласа. Приоритет — Европа и Азия.
+English | [Русский](docs/ru/README.md)
 
-**Первый выпуск неполный.** Это исходные данные и загрузчики, а не готовый мировой справочник. Точное покрытие — в `coverage.json` в Releases. Отсутствие записи не означает отсутствие города.
+Wikidata city snapshots for a historical atlas, with Europe and Asia prioritized for downloading.
 
-## Скачать
+**The first release is incomplete.** It contains source records and download tools, not a complete world gazetteer. See `coverage.json` in each release for exact coverage. An absent record does not mean a city does not exist.
 
-[Releases](https://github.com/shyr1punk/world-cities-atlas-data/releases):
+## Downloads
 
-- `cities.jsonl.gz` — одна запись города на строку;
-- `cities.sqlite.gz` — та же выборка в SQLite;
-- `coverage.json` — отчёт полноты;
-- `missing-world.json`, `missing-eurasia.json` — ещё не скачанные QID;
-- `SHA256SUMS` — контрольные суммы.
+[Release assets](https://github.com/shyr1punk/world-cities-atlas-data/releases):
 
-## Охват
+- `cities.jsonl.gz` — one city record per line;
+- `cities.sqlite.gz` — the same selection in SQLite;
+- `coverage.json` — coverage report;
+- `missing-world.json`, `missing-eurasia.json` — city QIDs still to be downloaded;
+- `SHA256SUMS` — file checksums.
 
-Глобальный список от 12 сентября 2026 года: 90 902 QID классов city (Q515), city/town (Q7930989) и их подклассов, без свойства упразднения P576. Порога населения нет. Классификация Wikidata может содержать ошибки; попадание в выборку не подтверждает юридический статус города.
+## Coverage
 
-Евразийская очередь пересекает этот список со связями Европы/Азии через город, ближайшую административную территорию или страну. Трансконтинентальные страны включены целиком для загрузки. Это не окончательная классификация; записи с неразрешённой географией могут отсутствовать. Запрос сохранён в `data/raw/world/eurasia/selection.json`.
+The global census dated September 12, 2026 contains 90,902 QIDs classified as city (Q515), city/town (Q7930989), or their subclasses, excluding records with a dissolution property (P576). There is no population threshold. Wikidata classifications may contain errors; inclusion does not establish legal city status.
 
-Записи скачаны в разные моменты. Для сущностей сохранены `lastrevid` и `modified`, когда источник их предоставляет. Проверенные исторические дополнения исходного атласа в выпуск не включены: здесь только данные Wikidata.
+The Eurasia queue intersects this census with Europe/Asia membership through the city itself, its immediate administrative territory, or its country. Transcontinental countries are included in full for downloading. This is not a final geographic classification; records with unresolved geography may be absent. The selection query is stored in `data/raw/world/eurasia/selection.json`.
 
-## Формат
+Records were fetched at different times. Entity `lastrevid` and `modified` fields are retained when available. Verified historical additions from the original atlas are not included: this release contains Wikidata records only.
 
-JSONL: `qid`, `name`, `countryIds`, `eurasiaPriority`, `entity`, `importRows`.
+## Data format
 
-`entity` сохраняет выбранные исходные свойства, квалификаторы и ссылки: страны, континенты, классы, административные территории, даты основания/первого упоминания, население, координаты, исходное название. `importRows` предназначены для дальнейшего импорта, это не проверенная историческая шкала. Неизвестные даты и координаты остаются неизвестными; дата изменения записи не является датой основания или переписи.
+JSONL fields: `qid`, `name`, `countryIds`, `eurasiaPriority`, `entity`, `importRows`.
 
-Названия: русский, английский, mul, затем доступное исходное. Страны — QID. В SQLite массивы и исходные свойства хранятся как JSON в TEXT-колонках.
+`entity` retains selected source claims, qualifiers, and references: countries, continents, classes, administrative territories, foundation/first-mention dates, population, coordinates, and native names. `importRows` is an intermediate representation for further import, not a verified historical timeline. Unknown dates and coordinates remain unknown; an entity modification date is not a foundation or census date.
+
+The initial dataset's display-name fallback is Russian, English, multilingual (`mul`), then an available native name. Source-language labels are preserved as data, independently of the documentation language. Countries use QIDs. SQLite stores arrays and source properties as JSON in TEXT columns.
 
 ```sql
 SELECT qid, name FROM cities WHERE eurasia_priority = 1 LIMIT 100;
 ```
 
-## Запуск
+## Running the tools
 
-Python 3.10+, без сторонних зависимостей. Из корня репозитория:
+Python 3.10 or later; no third-party dependencies. Run from the repository root:
 
 ```sh
 python3 scripts/fetch-eurasia.py
@@ -44,10 +46,10 @@ python3 scripts/export_snapshot.py
 python3 -m unittest discover -s tests -p 'test_*.py'
 ```
 
-Загрузчик использует сохранённую очередь, получает по 50 сущностей, сохраняет кеш в `data/raw/world/entities` и соблюдает Retry-After. Статус — в `data/raw/world/eurasia/status.json`. После сетевого сбоя повторный запуск использует кеш. Для полного сохранённого мирового списка: `python3 scripts/fetch-world-entities.py`.
+The downloader uses the saved queue, fetches batches of 50 entities, caches progress in `data/raw/world/entities`, and respects Retry-After. Status is written to `data/raw/world/eurasia/status.json`. Rerunning after a network failure reuses the cache. To fetch the entire saved global census, run `python3 scripts/fetch-world-entities.py`.
 
-Региональное завершение не объявляет мировой каталог полным. Экспорт не изменяет сайт. Сервера API и автоматического расписания пока нет.
+Completing the regional queue does not mark the world catalog complete. Exporting does not modify the website. No API server or automatic update schedule is included yet.
 
-## Источники и права
+## Sources and licensing
 
-Структурированные данные Wikidata: [CC0](https://www.wikidata.org/wiki/Wikidata:Licensing). Источник каждого города: `https://www.wikidata.org/wiki/<QID>`. Ссылки на сторонние источники сохраняются без копирования их текстов. Отдельная лицензия на код пока не выбрана.
+Wikidata structured data is available under [CC0](https://www.wikidata.org/wiki/Wikidata:Licensing). Each city's source is `https://www.wikidata.org/wiki/<QID>`. Links to third-party references are retained without copying their texts. A separate code license has not yet been selected.
